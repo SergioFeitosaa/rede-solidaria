@@ -2,11 +2,14 @@ import {
   dismissSuggestion,
   listMatches,
   registerInterest,
+  resolveActor,
   suggestionsForOffer,
   suggestionsForRequest
 } from "@/modules/matching/service";
 import { toResponse, DomainError } from "@/lib/errors";
 import { requireAdmin } from "@/lib/auth";
+import { readOwnerSession } from "@/lib/session";
+import { clientKey, matchLimiter, tooManyRequests } from "@/lib/rate-limit";
 
 /**
  * GET /api/matches
@@ -48,11 +51,23 @@ export async function GET(req: Request) {
  */
 export async function POST(req: Request) {
   try {
+    const limit = matchLimiter(clientKey(req));
+    if (!limit.ok) return tooManyRequests(limit);
+
     const body = await req.json();
-    const who = body.who === "provider" ? "provider" : body.who === "requester" ? "requester" : null;
-    if (!who || !body.requestId || !body.offerId) {
+    const declaredWho = body.who === "provider" ? "provider" : body.who === "requester" ? "requester" : null;
+    if (!declaredWho || !body.requestId || !body.offerId) {
       throw new DomainError("Informe requestId, offerId e who ('requester' ou 'provider').", 400);
     }
+
+    // Quem age é decidido AQUI: o cliente não pode declarar consentimento alheio.
+    const session = await readOwnerSession();
+    const who = await resolveActor({
+      requestId: String(body.requestId),
+      offerId: String(body.offerId),
+      declaredWho,
+      session
+    });
 
     if (body.action === "PASS") {
       await dismissSuggestion({ requestId: String(body.requestId), offerId: String(body.offerId), who });
@@ -64,7 +79,7 @@ export async function POST(req: Request) {
       offerId: String(body.offerId),
       who
     });
-    return Response.json(result, { status: 201 });
+    return Response.json({ ...result, actor: who }, { status: 201 });
   } catch (err) {
     return toResponse(err);
   }

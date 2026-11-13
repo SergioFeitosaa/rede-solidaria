@@ -102,7 +102,7 @@ devolve o cartão ao baralho.
 ### Testes e build
 
 ```bash
-npm test          # 28 testes (5 arquivos), IA mockada
+npm test          # 39 testes (7 arquivos), IA mockada
 npm run build     # build de produção
 ```
 
@@ -240,13 +240,27 @@ fluxo acima (1m30) → indicador e impacto (30s) → IA com auditoria + próximo
   - `tests/attendance-flow.test.ts` — **Teste 3 (fluxo de atendimento):** interesse → confirmação →
     conclusão, com bloqueio de confirmação duplicada e de transições inválidas.
   - `tests/ai-classify.test.ts` — saída estruturada da IA e caminhos de falha.
+  - `tests/match-decisions.test.ts` — swipe que lembra (dispensa idempotente, isolamento por ator)
+    e código curto único/buscável.
+  - `tests/match-auth.test.ts` — **autorização do Match:** quem age é resolvido no servidor;
+    cliente não marca consentimento alheio. Também cobre paginação e leitura sem escrita.
+  - `tests/rate-limit.test.ts` — limite de escrita nas rotas públicas.
 
 ## 11. Segurança e privacidade
 
 - Minimização de dados: sem endereço residencial, sem telefones nos cartões públicos; a lista
   pública de pedidos **não expõe** a forma de acompanhamento (só a Central vê).
 - Rotas administrativas validam `ADMIN_TOKEN` **no servidor** (cookie httpOnly / Bearer).
+  `GET /api/matches` sem filtro (lista operacional de conexões) também é restrito.
+- **Quem age no Match é decidido no servidor.** Cada pedido/oferta guarda a sessão anônima
+  (cookie httpOnly `rs_owner`, UUID opaco) que o criou; o cliente não consegue registrar
+  interesse "em nome do doador". Registros de demonstração (seed), sem dono, permanecem
+  utilizáveis — é o que mantém a demo funcionando.
 - Validação de todas as entradas no servidor (Zod). Chaves de API só em variáveis de ambiente.
+- Escrita pública limitada por IP (12/min para pedidos e ofertas, 90/min para o Match).
+  O contador é em memória, por instância: em deploy serverless, troque por um contador
+  compartilhado (Upstash/Redis) — está isolado em `src/lib/rate-limit.ts`.
+- Visualizar sugestões é **leitura**: nada é gravado em `matches` até haver uma decisão.
 - A IA recebe apenas o relato e a região.
 - O sistema **não substitui** Defesa Civil, serviços de emergência ou organizações humanitárias.
 
@@ -275,7 +289,7 @@ Monólito modular **Next.js (App Router) + TypeScript**:
 │   │   ├── mobilization/  # Módulo D — atendimentos + indicadores
 │   │   └── ai/            # interpretação estruturada (server-only)
 │   └── lib/               # db (Postgres/PGlite), auth, regiões (OSM), memória local
-└── tests/                 # Vitest (28 testes)
+└── tests/                 # Vitest (39 testes)
 ```
 
 Entidades: `users`, `help_requests`, `help_offers`, `matches`, `attendances` e
