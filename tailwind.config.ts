@@ -11,17 +11,30 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50: "#eefbf6",
-          100: "#d3f5e8",
-          200: "#a9ead3",
-          300: "#71d8b8",
-          400: "#3cbf99",
-          500: "#1ba381",
-          600: "#0f8468",
-          700: "#0d6a56",
-          800: "#0d5445",
-          900: "#0c453a",
-          950: "#04271f"
+          50: "#eff7f3",
+          100: "#d7ece2",
+          200: "#aed9c8",
+          300: "#7ec0a8",
+          400: "#4ba387",
+          500: "#2a8a6d",
+          600: "#167058",
+          700: "#0e5c4a",
+          800: "#0c4a3c",
+          900: "#0b3f34",
+          950: "#052a23"
+        },
+        /* Laranja de destaque (headline, ícones, selos) — do layout */
+        accent: {
+          50: "#fdf2ea",
+          100: "#fbe1d1",
+          200: "#f6c3a6",
+          300: "#f0a074",
+          400: "#ea8354",
+          500: "#e9764b",
+          600: "#d75f36",
+          700: "#b44a29",
+          800: "#8f3a21",
+          900: "#6f2f1d"
         },
         sand: {
           50: "#faf8f4",
@@ -30,11 +43,11 @@ const config: Config = {
           300: "#d6c4a4"
         },
         /* Superfícies e texto */
-        canvas: "#f5f7f6",
+        canvas: "#faf8f2",
         surface: "#ffffff",
-        line: "#e3e8e5",
-        muted: "#5c6b66",
-        ink: "#16211e",
+        line: "#ece7dc",
+        muted: "#6b6f68",
+        ink: "#12211d",
         /* Semânticos */
         alert: "#9a5b00",
         danger: "#a51d1d",
@@ -43,6 +56,7 @@ const config: Config = {
       fontFamily: {
         sans: [
           "Inter",
+          "Inter Tight",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
