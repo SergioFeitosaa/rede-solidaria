@@ -53,10 +53,14 @@ Registrar necessidade → Interpretar com IA → Revisão humana → Validar (or
 ### Passo a passo
 
 ```bash
-npm install
+npm ci
 cp .env.example .env.local   # edite as variáveis (veja abaixo)
+npm run seed                 # dados de demonstração (fictícios)
 npm run dev                  # http://localhost:3000
 ```
+
+Passo a passo detalhado (Windows/PowerShell, checklist de telas e problemas comuns):
+[`docs/como-rodar-local.md`](docs/como-rodar-local.md).
 
 ### Variáveis de ambiente (`.env.local`)
 
