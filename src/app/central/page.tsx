@@ -102,6 +102,8 @@ export default function CentralPage() {
 
   const [filter, setFilter] = useState<Filter>("ALL");
   const [query, setQuery] = useState("");
+  /** Um gráfico só, alternando a dimensão — evita dois cards para a mesma leitura. */
+  const [chart, setChart] = useState<"categoria" | "regiao">("categoria");
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -361,52 +363,63 @@ export default function CentralPage() {
           </section>
 
           <section aria-label="Distribuição de necessidades">
-            <SectionHeading title="Distribuição de necessidades" description="Onde e o que a rede está pedindo." />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Card title="Por categoria">
-                {dashboard.porCategoria.length === 0 && <p className="text-sm text-muted">Sem registros.</p>}
-                <ul className="space-y-2.5">
-                  {dashboard.porCategoria.map((item) => (
-                    <li key={item.categoria}>
-                      <div className="flex justify-between text-sm">
-                        <span className="font-semibold text-ink">{item.categoria}</span>
-                        <span className="tabular-nums text-muted">{item.total}</span>
-                      </div>
-                      <div
-                        role="img"
-                        aria-label={`${item.categoria}: ${item.total} pedido(s)`}
-                        className="mt-1 h-2 rounded-full bg-canvas"
-                      >
+            <Card
+              title="Distribuição de necessidades"
+              actions={
+                <div className="flex rounded-xl border border-line p-1" role="group" aria-label="Dimensão do gráfico">
+                  {(
+                    [
+                      { value: "categoria", label: "Categoria" },
+                      { value: "regiao", label: "Região" }
+                    ] as const
+                  ).map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={chart === option.value}
+                      onClick={() => setChart(option.value)}
+                      className={cn(
+                        "rounded-lg px-3 py-1.5 text-xs font-bold transition-colors",
+                        chart === option.value ? "bg-brand-700 text-white" : "text-muted hover:bg-canvas"
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              }
+            >
+              {(() => {
+                const rows =
+                  chart === "categoria"
+                    ? dashboard.porCategoria.map((item) => ({ label: item.categoria, total: item.total }))
+                    : dashboard.porRegiao.map((item) => ({ label: item.regiao, total: item.total }));
+                const max = chart === "categoria" ? maxCat : maxReg;
+                if (rows.length === 0) return <p className="text-sm text-muted">Sem registros.</p>;
+                return (
+                  <ul className="space-y-2.5">
+                    {rows.map((row) => (
+                      <li key={row.label}>
+                        <div className="flex justify-between text-sm">
+                          <span className="font-semibold text-ink">{row.label}</span>
+                          <span className="tabular-nums text-muted">{row.total}</span>
+                        </div>
                         <div
-                          className="h-2 rounded-full bg-brand-600"
-                          style={{ width: `${(item.total / maxCat) * 100}%` }}
-                        />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-              <Card title="Por região (bairro)">
-                {dashboard.porRegiao.length === 0 && <p className="text-sm text-muted">Sem registros.</p>}
-                <ul className="space-y-2.5">
-                  {dashboard.porRegiao.map((item) => (
-                    <li key={item.regiao}>
-                      <div className="flex justify-between text-sm">
-                        <span className="font-semibold text-ink">{item.regiao}</span>
-                        <span className="tabular-nums text-muted">{item.total}</span>
-                      </div>
-                      <div
-                        role="img"
-                        aria-label={`${item.regiao}: ${item.total} pedido(s)`}
-                        className="mt-1 h-2 rounded-full bg-canvas"
-                      >
-                        <div className="h-2 rounded-full bg-brand-400" style={{ width: `${(item.total / maxReg) * 100}%` }} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            </div>
+                          role="img"
+                          aria-label={`${row.label}: ${row.total} pedido(s)`}
+                          className="mt-1 h-2 rounded-full bg-canvas"
+                        >
+                          <div
+                            className={cn("h-2 rounded-full", chart === "categoria" ? "bg-brand-600" : "bg-brand-400")}
+                            style={{ width: `${(row.total / max) * 100}%` }}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
+            </Card>
           </section>
         </>
       )}

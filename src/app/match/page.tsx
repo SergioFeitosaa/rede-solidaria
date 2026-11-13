@@ -60,6 +60,8 @@ function MatchInner() {
   const [myRequests, setMyRequests] = useState<LocalRequest[]>([]);
   const [myOffers, setMyOffers] = useState<LocalOffer[]>([]);
   const [options, setOptions] = useState<PickOption[]>([]);
+  /** Pedido validado usado só como exemplo na demonstração (não é lista de escolha). */
+  const [demoRequest, setDemoRequest] = useState<PickOption | null>(null);
 
   const [cards, setCards] = useState<DeckCard[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
@@ -71,8 +73,17 @@ function MatchInner() {
   const selectedId = mode === "preciso" ? requestId : offerId;
   const selectedLabel = useMemo(() => {
     if (!selectedId) return null;
+    const own = (mode === "preciso" ? myRequests : myOffers).find((item) => item.id === selectedId);
+    if (own) {
+      return {
+        id: own.id,
+        title: `${own.category}${own.item ? ` — ${own.item}` : ""}`,
+        subtitle: own.region
+      } satisfies PickOption;
+    }
+    if (demoRequest?.id === selectedId) return demoRequest;
     return options.find((option) => option.id === selectedId) ?? null;
-  }, [options, selectedId]);
+  }, [mode, myOffers, myRequests, options, demoRequest, selectedId]);
 
   const loadOptions = useCallback(async (current: Mode) => {
     setLoadingOptions(true);
@@ -83,17 +94,40 @@ function MatchInner() {
       else setMyOffers(local as LocalOffer[]);
 
       if (current === "preciso") {
-        const res = await fetch("/api/requests?status=VALIDATED");
+        // Só os pedidos da própria pessoa: escolher o pedido de outra pessoa aqui
+        // não faz sentido e era a maior fonte de confusão da tela.
+        const res = await fetch("/api/requests?status=VALIDATED&limit=4");
         const data = await res.json();
-        const remote: PickOption[] = (data.requests ?? []).map(
-          (r: { id: string; shortCode: string | null; category: string; item: string | null; region: string }) => ({
-            id: r.id,
-            title: `${r.category}${r.item ? ` — ${r.item}` : ""}`,
-            subtitle: r.region,
-            badge: r.shortCode ?? undefined
-          })
+        const candidates = (data.requests ?? []) as Array<{
+          id: string;
+          shortCode: string | null;
+          category: string;
+          item: string | null;
+          region: string;
+        }>;
+        // O exemplo precisa ter cartões de verdade: escolhemos o primeiro pedido
+        // validado que tenha pelo menos uma compatibilidade.
+        let first: (typeof candidates)[number] | undefined;
+        for (const candidate of candidates) {
+          const check = await fetch(`/api/matches?requestId=${candidate.id}`);
+          if (!check.ok) continue;
+          const payload = await check.json();
+          if ((payload.suggestions ?? []).length > 0) {
+            first = candidate;
+            break;
+          }
+        }
+        setDemoRequest(
+          first
+            ? {
+                id: first.id,
+                title: `${first.category}${first.item ? ` — ${first.item}` : ""}`,
+                subtitle: first.region,
+                badge: first.shortCode ?? "exemplo"
+              }
+            : null
         );
-        setOptions(remote);
+        setOptions([]);
       } else {
         const res = await fetch("/api/offers?status=AVAILABLE");
         const data = await res.json();
@@ -272,7 +306,7 @@ function MatchInner() {
       {!selectedId && (
         <Card
           eyebrow="Passo 1"
-          title={mode === "preciso" ? "Sobre qual pedido você quer ver ofertas?" : "Sobre qual oferta você quer ver necessidades?"}
+          title={mode === "preciso" ? "De qual pedido você quer ver ofertas?" : "Qual oferta você quer usar?"}
         >
           {loadingOptions ? (
             <div className="space-y-2">
@@ -280,67 +314,94 @@ function MatchInner() {
               <Skeleton className="h-16" />
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {ownOptions.length > 0 && (
-                <div>
-                  <p className="mb-2 text-2xs font-bold uppercase tracking-[0.1em] text-muted">Seus registros</p>
-                  <ul className="space-y-2">
-                    {ownOptions.map((option) => (
-                      <li key={option.id}>
-                        <PickRow
-                          option={option}
-                          onSelect={() => (mode === "preciso" ? setRequestId(option.id) : setOfferId(option.id))}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <ul className="space-y-2">
+                  {ownOptions.map((option) => (
+                    <li key={option.id}>
+                      <PickRow
+                        option={option}
+                        onSelect={() => (mode === "preciso" ? setRequestId(option.id) : setOfferId(option.id))}
+                      />
+                    </li>
+                  ))}
+                </ul>
               )}
 
-              <div>
-                <p className="mb-2 text-2xs font-bold uppercase tracking-[0.1em] text-muted">
-                  {ownOptions.length > 0
-                    ? "Outros registros na rede"
-                    : mode === "preciso"
-                      ? "Pedidos validados pela organização"
-                      : "Ofertas disponíveis"}
-                </p>
-                {options.length === 0 ? (
+              {/* "Preciso de ajuda": só os próprios pedidos. Sem lista de pedidos alheios. */}
+              {mode === "preciso" && ownOptions.length === 0 && (
+                <div className="space-y-3">
                   <EmptyState
-                    icon={mode === "preciso" ? <IconHandHeart size={22} /> : <IconHeart size={22} />}
-                    title={
-                      mode === "preciso"
-                        ? "Nenhum pedido validado ainda"
-                        : "Nenhuma oferta disponível ainda"
-                    }
-                    description={
-                      mode === "preciso"
-                        ? "Registre o seu pedido: assim que a organização validar, as ofertas compatíveis aparecem aqui."
-                        : "Cadastre o que você pode doar ou o tempo que pode oferecer para começar."
-                    }
+                    icon={<IconHandHeart size={22} />}
+                    title="Você ainda não tem um pedido registrado"
+                    description="Registre o seu pedido para ver as ofertas compatíveis. Leva menos de dois minutos e você acompanha tudo por um código."
                     action={
                       <Link
-                        href={mode === "preciso" ? "/solicitar-ajuda" : "/oferecer-ajuda"}
+                        href="/solicitar-ajuda"
                         className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-bold text-white shadow-soft hover:bg-brand-800"
                       >
-                        {mode === "preciso" ? "Solicitar ajuda" : "Oferecer ajuda"}
-                        <IconArrowRight size={16} />
+                        Solicitar ajuda <IconArrowRight size={16} />
                       </Link>
                     }
                   />
-                ) : (
-                  <ul className="space-y-2">
-                    {options.slice(0, 12).map((option) => (
-                      <li key={option.id}>
-                        <PickRow
-                          option={option}
-                          onSelect={() => (mode === "preciso" ? setRequestId(option.id) : setOfferId(option.id))}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+                  {demoRequest && (
+                    <button
+                      type="button"
+                      onClick={() => setRequestId(demoRequest.id)}
+                      className="flex w-full items-center justify-between gap-2 rounded-xl border border-dashed border-line bg-white px-4 py-3 text-left text-sm text-muted transition-colors hover:border-brand-300 hover:text-ink"
+                    >
+                      <span>
+                        Só quer ver como funciona? Use um pedido de exemplo{" "}
+                        <span className="font-mono text-2xs">({demoRequest.badge})</span>
+                      </span>
+                      <IconArrowRight size={15} className="shrink-0" />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {mode === "preciso" && ownOptions.length > 0 && (
+                <Link
+                  href="/solicitar-ajuda"
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-800 hover:underline"
+                >
+                  Registrar outro pedido <IconArrowRight size={14} />
+                </Link>
+              )}
+
+              {/* "Quero ajudar": além das minhas ofertas, as ofertas disponíveis na rede */}
+              {mode === "ajudar" && (
+                <div>
+                  {ownOptions.length > 0 && (
+                    <p className="mb-2 text-2xs font-bold uppercase tracking-[0.1em] text-muted">
+                      Outras ofertas na rede
+                    </p>
+                  )}
+                  {options.length === 0 ? (
+                    <EmptyState
+                      icon={<IconHeart size={22} />}
+                      title="Nenhuma oferta disponível ainda"
+                      description="Cadastre o que você pode doar ou o tempo que pode oferecer para começar."
+                      action={
+                        <Link
+                          href="/oferecer-ajuda"
+                          className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-bold text-white shadow-soft hover:bg-brand-800"
+                        >
+                          Oferecer ajuda <IconArrowRight size={16} />
+                        </Link>
+                      }
+                    />
+                  ) : (
+                    <ul className="space-y-2">
+                      {options.slice(0, 12).map((option) => (
+                        <li key={option.id}>
+                          <PickRow option={option} onSelect={() => setOfferId(option.id)} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </Card>
