@@ -57,6 +57,7 @@ export interface RequestRecord {
 interface RequestRow {
   id: string;
   short_code: string | null;
+  owner_session: string | null;
   user_id: string | null;
   category: string;
   item: string | null;
@@ -101,6 +102,8 @@ export function newShortCode(prefix = "RS"): string {
 
 export interface RequestDeps {
   db?: Database;
+  /** Sessão anônima do navegador que criou o pedido (nunca exposta nas APIs). */
+  ownerSession?: string | null;
   classify?: ClassifyFn;
   region?: (input: string, opts?: RecognizeOptions) => Promise<Awaited<ReturnType<typeof recognizeRegion>>>;
 }
@@ -172,8 +175,8 @@ export async function createRequest(
     try {
       [row] = await db.query<RequestRow>(
         `INSERT INTO help_requests
-           (id, short_code, user_id, category, item, description, quantity, region, contact_method, status, ai_classification)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'PENDING', $10::jsonb)
+           (id, short_code, user_id, category, item, description, quantity, region, contact_method, status, ai_classification, owner_session)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'PENDING', $10::jsonb, $11)
          RETURNING *`,
         [
           record.id,
@@ -185,7 +188,8 @@ export async function createRequest(
           record.quantity,
           record.region,
           record.contactMethod,
-          record.classification
+          record.classification,
+          deps.ownerSession ?? null
         ]
       );
     } catch (error) {
@@ -309,8 +313,29 @@ export async function getRequest(id: string, deps: RequestDeps = {}): Promise<Re
   return row ? toRecord(row) : null;
 }
 
+const MAX_PAGE_SIZE = 200;
+const DEFAULT_PAGE_SIZE = 50;
+
+/** Normaliza paginação vinda de query string (evita `limit=999999`). */
+export function pageParams(
+  input: { limit?: string | number | null; offset?: string | number | null },
+  fallback: number = DEFAULT_PAGE_SIZE
+): {
+  limit: number;
+  offset: number;
+} {
+  const limitRaw = Number(input.limit);
+  const offsetRaw = Number(input.offset);
+  const limit =
+    Number.isFinite(limitRaw) && limitRaw > 0
+      ? Math.min(Math.floor(limitRaw), MAX_PAGE_SIZE)
+      : Math.min(fallback, MAX_PAGE_SIZE);
+  const offset = Number.isFinite(offsetRaw) && offsetRaw > 0 ? Math.floor(offsetRaw) : 0;
+  return { limit, offset };
+}
+
 export async function listRequests(
-  filters: { status?: string; region?: string } = {},
+  filters: { status?: string; region?: string; limit?: number; offset?: number } = {},
   deps: RequestDeps = {}
 ): Promise<RequestRecord[]> {
   const db = deps.db ?? (await getDb());
@@ -325,8 +350,11 @@ export async function listRequests(
     conditions.push(`region ILIKE $${params.length}`);
   }
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  const limit = Math.min(Math.max(filters.limit ?? MAX_PAGE_SIZE, 1), MAX_PAGE_SIZE);
+  const offset = Math.max(filters.offset ?? 0, 0);
+  params.push(limit, offset);
   const rows = await db.query<RequestRow>(
-    `SELECT * FROM help_requests ${where} ORDER BY created_at DESC LIMIT 200`,
+    `SELECT * FROM help_requests ${where} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params as never
   );
   return rows.map(toRecord);

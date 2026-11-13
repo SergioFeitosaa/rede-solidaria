@@ -35,6 +35,7 @@ export interface OfferRecord {
 
 interface OfferRow {
   id: string;
+  owner_session: string | null;
   user_id: string | null;
   type: OfferRecord["type"];
   category: string;
@@ -65,6 +66,8 @@ function toRecord(row: OfferRow): OfferRecord {
 
 export interface OfferDeps {
   db?: Database;
+  /** Sessão anônima do navegador que criou a oferta (nunca exposta nas APIs). */
+  ownerSession?: string | null;
   region?: (input: string, opts?: RecognizeOptions) => Promise<Awaited<ReturnType<typeof recognizeRegion>>>;
 }
 
@@ -89,8 +92,8 @@ export async function createOffer(
 
   const [row] = await db.query<OfferRow>(
     `INSERT INTO help_offers
-       (id, user_id, type, category, item, description, quantity, region, availability, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'AVAILABLE')
+       (id, user_id, type, category, item, description, quantity, region, availability, status, owner_session)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'AVAILABLE', $10)
      RETURNING *`,
     [
       newId(),
@@ -101,7 +104,8 @@ export async function createOffer(
       data.description,
       data.quantity ?? null,
       region,
-      data.availability ?? null
+      data.availability ?? null,
+      deps.ownerSession ?? null
     ]
   );
   return toRecord(row);
@@ -114,7 +118,7 @@ export async function getOffer(id: string, deps: OfferDeps = {}): Promise<OfferR
 }
 
 export async function listOffers(
-  filters: { status?: string; category?: string } = {},
+  filters: { status?: string; category?: string; limit?: number; offset?: number } = {},
   deps: OfferDeps = {}
 ): Promise<OfferRecord[]> {
   const db = deps.db ?? (await getDb());
@@ -129,8 +133,11 @@ export async function listOffers(
     conditions.push(`category = $${params.length}`);
   }
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  const limit = Math.min(Math.max(filters.limit ?? 200, 1), 200);
+  const offset = Math.max(filters.offset ?? 0, 0);
+  params.push(limit, offset);
   const rows = await db.query<OfferRow>(
-    `SELECT * FROM help_offers ${where} ORDER BY created_at DESC LIMIT 200`,
+    `SELECT * FROM help_offers ${where} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params as never
   );
   return rows.map(toRecord);

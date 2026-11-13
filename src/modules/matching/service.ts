@@ -131,6 +131,24 @@ export async function dismissSuggestion(
   );
 }
 
+/** Matches já existentes para um pedido (leitura pura: visualizar não grava nada). */
+async function matchIdsByOffer(db: Database, requestId: string): Promise<Map<string, string>> {
+  const rows = await db.query<{ id: string; offer_id: string }>(
+    "SELECT id, offer_id FROM matches WHERE request_id = $1",
+    [requestId]
+  );
+  return new Map(rows.map((row) => [row.offer_id, row.id]));
+}
+
+/** Matches já existentes para uma oferta. */
+async function matchIdsByRequest(db: Database, offerId: string): Promise<Map<string, string>> {
+  const rows = await db.query<{ id: string; request_id: string }>(
+    "SELECT id, request_id FROM matches WHERE offer_id = $1",
+    [offerId]
+  );
+  return new Map(rows.map((row) => [row.request_id, row.id]));
+}
+
 /** Sugestões para um pedido (ofertas compatíveis). */
 export async function suggestionsForRequest(
   requestId: string,
@@ -139,16 +157,17 @@ export async function suggestionsForRequest(
   const db = deps.db ?? (await getDb());
   const request = await getRequest(requestId, { db });
   if (!request) throw new DomainError("Pedido não encontrado.", 404);
-  const offers = await listOffers({ status: "AVAILABLE" }, { db });
+  const offers = await listOffers({ status: "AVAILABLE", limit: 200 }, { db });
   const dismissed = await dismissedOffers(db, request.id, "requester");
+  const existing = await matchIdsByOffer(db, request.id);
 
   const suggestions: MatchSuggestion[] = [];
   for (const offer of offers) {
     if (dismissed.has(offer.id)) continue;
     const report = evaluateCompatibility(summarizeRequest(request), summarizeOffer(offer));
     if (report.compatible) {
-      const match = await upsertSuggestedMatch(db, request, offer, report);
-      suggestions.push({ request, offer, report, matchId: match.id });
+      // Visualizar sugestões é leitura: o match só é gravado quando há decisão.
+      suggestions.push({ request, offer, report, matchId: existing.get(offer.id) ?? null });
     }
   }
   suggestions.sort((a, b) => b.report.score - a.report.score);
@@ -163,20 +182,62 @@ export async function suggestionsForOffer(
   const db = deps.db ?? (await getDb());
   const offer = await getOffer(offerId, { db });
   if (!offer) throw new DomainError("Oferta não encontrada.", 404);
-  const requests = await listRequests({ status: "VALIDATED" }, { db });
+  const requests = await listRequests({ status: "VALIDATED", limit: 200 }, { db });
   const dismissed = await dismissedRequests(db, offer.id);
+  const existing = await matchIdsByRequest(db, offer.id);
 
   const suggestions: MatchSuggestion[] = [];
   for (const request of requests) {
     if (dismissed.has(request.id)) continue;
     const report = evaluateCompatibility(summarizeRequest(request), summarizeOffer(offer));
     if (report.compatible) {
-      const match = await upsertSuggestedMatch(db, request, offer, report);
-      suggestions.push({ request, offer, report, matchId: match.id });
+      suggestions.push({ request, offer, report, matchId: existing.get(request.id) ?? null });
     }
   }
   suggestions.sort((a, b) => b.report.score - a.report.score);
   return suggestions;
+}
+
+/**
+ * Decide QUEM está agindo, no servidor.
+ *
+ * O cliente não pode declarar "sou o doador" e marcar consentimento alheio.
+ * Regra: a sessão anônima do navegador precisa ser dona de um dos lados.
+ * Registros antigos/de demonstração (sem dono) continuam aceitando a
+ * declaração do cliente — é o que mantém a demo do seed funcionando.
+ */
+export async function resolveActor(
+  input: {
+    requestId: string;
+    offerId: string;
+    declaredWho: "requester" | "provider";
+    session: string | null;
+  },
+  deps: MatchDeps = {}
+): Promise<"requester" | "provider"> {
+  const db = deps.db ?? (await getDb());
+  const [owners] = await db.query<{ request_owner: string | null; offer_owner: string | null }>(
+    `SELECT (SELECT owner_session FROM help_requests WHERE id = $1) AS request_owner,
+            (SELECT owner_session FROM help_offers   WHERE id = $2) AS offer_owner`,
+    [input.requestId, input.offerId]
+  );
+
+  const requestOwner = owners?.request_owner ?? null;
+  const offerOwner = owners?.offer_owner ?? null;
+
+  if (!requestOwner && !offerOwner) return input.declaredWho;
+
+  const ownsRequest = Boolean(input.session && requestOwner === input.session);
+  const ownsOffer = Boolean(input.session && offerOwner === input.session);
+
+  if (ownsRequest && ownsOffer) return input.declaredWho;
+  if (ownsRequest) return "requester";
+  if (ownsOffer) return "provider";
+
+  throw new DomainError(
+    "Você só pode registrar interesse nos seus próprios registros. Abra o Match a partir do seu pedido ou da sua oferta.",
+    403
+  );
 }
 
 export interface InterestResult {

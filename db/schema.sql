@@ -85,3 +85,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_help_requests_short_code ON help_requests 
 CREATE INDEX IF NOT EXISTS idx_help_requests_status_region ON help_requests (status, region);
 CREATE INDEX IF NOT EXISTS idx_help_offers_status_region ON help_offers (status, region);
 CREATE INDEX IF NOT EXISTS idx_help_offers_category ON help_offers (category);
+
+-- Sessão anônima do navegador (cookie httpOnly): permite provar de quem é o
+-- registro sem exigir login. Sem ela, qualquer cliente poderia registrar
+-- interesse "em nome do doador".
+ALTER TABLE help_requests ADD COLUMN IF NOT EXISTS owner_session TEXT;
+ALTER TABLE help_offers ADD COLUMN IF NOT EXISTS owner_session TEXT;
+CREATE INDEX IF NOT EXISTS idx_help_requests_owner_session ON help_requests (owner_session);
+CREATE INDEX IF NOT EXISTS idx_help_offers_owner_session ON help_offers (owner_session);
