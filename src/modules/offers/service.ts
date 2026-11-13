@@ -142,17 +142,3 @@ export async function listOffers(
   );
   return rows.map(toRecord);
 }
-
-export async function setOfferStatus(
-  id: string,
-  status: OfferRecord["status"],
-  deps: OfferDeps = {}
-): Promise<OfferRecord> {
-  const db = deps.db ?? (await getDb());
-  const [updated] = await db.query<OfferRow>(
-    "UPDATE help_offers SET status = $2 WHERE id = $1 RETURNING *",
-    [id, status]
-  );
-  if (!updated) throw new DomainError("Oferta não encontrada.", 404);
-  return toRecord(updated);
-}

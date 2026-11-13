@@ -1,22 +1,8 @@
 import { z } from "zod";
 
-/** Categorias fixas do MVP (Módulo A do escopo). */
-export const CATEGORIAS = [
-  "Água",
-  "Alimentos",
-  "Colchões",
-  "Roupas",
-  "Higiene",
-  "Limpeza",
-  "Apoio voluntário",
-  "Outros"
-] as const;
+import { CATEGORIAS, type Categoria } from "@/lib/categorias";
 
-export type Categoria = (typeof CATEGORIAS)[number];
-
-export function isCategoria(value: string): value is Categoria {
-  return (CATEGORIAS as readonly string[]).includes(value);
-}
+export { CATEGORIAS, isCategoria, type Categoria } from "@/lib/categorias";
 
 /**
  * Saída estruturada da interpretação de necessidade (IA — Função 1).

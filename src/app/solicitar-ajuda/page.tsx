@@ -14,18 +14,8 @@ import {
   IconSparkle,
   IconUsers
 } from "@/components/icons";
+import { CATEGORIAS } from "@/lib/categorias";
 import { saveLocalRequest } from "@/lib/local-records";
-
-const CATEGORIAS = [
-  "Água",
-  "Alimentos",
-  "Colchões",
-  "Roupas",
-  "Higiene",
-  "Limpeza",
-  "Apoio voluntário",
-  "Outros"
-];
 
 type AiAudit = {
   status: "SUGGESTED" | "ACCEPTED" | "CORRECTED" | "MANUAL" | "UNAVAILABLE";
