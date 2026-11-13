@@ -92,6 +92,45 @@ async function upsertSuggestedMatch(
   return toRecord(again);
 }
 
+/** Ids já dispensados por um ator (swipe para a esquerda). */
+async function dismissedOffers(
+  db: Database,
+  requestId: string,
+  actor: "requester" | "provider"
+): Promise<Set<string>> {
+  const rows = await db.query<{ offer_id: string }>(
+    "SELECT offer_id FROM match_dismissals WHERE request_id = $1 AND actor = $2",
+    [requestId, actor]
+  );
+  return new Set(rows.map((r) => r.offer_id));
+}
+
+/** Ids de pedidos dispensados para uma oferta (swipe para a esquerda). */
+async function dismissedRequests(db: Database, offerId: string): Promise<Set<string>> {
+  const rows = await db.query<{ request_id: string }>(
+    "SELECT request_id FROM match_dismissals WHERE offer_id = $1 AND actor = 'provider'",
+    [offerId]
+  );
+  return new Set(rows.map((r) => r.request_id));
+}
+
+/**
+ * Registra que o ator passou de um cartão. Sem isso, o cartão recusado
+ * voltaria na próxima visita e o app pareceria ignorar a pessoa.
+ */
+export async function dismissSuggestion(
+  input: { requestId: string; offerId: string; who: "requester" | "provider" },
+  deps: MatchDeps = {}
+): Promise<void> {
+  const db = deps.db ?? (await getDb());
+  await db.query(
+    `INSERT INTO match_dismissals (id, request_id, offer_id, actor)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (request_id, offer_id, actor) DO NOTHING`,
+    [newId(), input.requestId, input.offerId, input.who]
+  );
+}
+
 /** Sugestões para um pedido (ofertas compatíveis). */
 export async function suggestionsForRequest(
   requestId: string,
@@ -101,9 +140,11 @@ export async function suggestionsForRequest(
   const request = await getRequest(requestId, { db });
   if (!request) throw new DomainError("Pedido não encontrado.", 404);
   const offers = await listOffers({ status: "AVAILABLE" }, { db });
+  const dismissed = await dismissedOffers(db, request.id, "requester");
 
   const suggestions: MatchSuggestion[] = [];
   for (const offer of offers) {
+    if (dismissed.has(offer.id)) continue;
     const report = evaluateCompatibility(summarizeRequest(request), summarizeOffer(offer));
     if (report.compatible) {
       const match = await upsertSuggestedMatch(db, request, offer, report);
@@ -123,9 +164,11 @@ export async function suggestionsForOffer(
   const offer = await getOffer(offerId, { db });
   if (!offer) throw new DomainError("Oferta não encontrada.", 404);
   const requests = await listRequests({ status: "VALIDATED" }, { db });
+  const dismissed = await dismissedRequests(db, offer.id);
 
   const suggestions: MatchSuggestion[] = [];
   for (const request of requests) {
+    if (dismissed.has(request.id)) continue;
     const report = evaluateCompatibility(summarizeRequest(request), summarizeOffer(offer));
     if (report.compatible) {
       const match = await upsertSuggestedMatch(db, request, offer, report);

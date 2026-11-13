@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import "./globals.css";
+import { HeaderNav, MobileTabBar } from "@/components/HeaderNav";
+import { IconLogo } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: {
@@ -18,73 +20,73 @@ export const viewport: Viewport = {
   themeColor: "#0d6a56"
 };
 
-const NAV = [
-  { href: "/", label: "Início" },
-  { href: "/solicitar-ajuda", label: "Solicitar ajuda" },
-  { href: "/oferecer-ajuda", label: "Oferecer ajuda" },
-  { href: "/match", label: "Match Solidário" },
-  { href: "/central", label: "Central" }
-];
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body>
+      <body className="min-h-dvh">
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo principal
         </a>
-        <header className="sticky top-0 z-40 border-b border-brand-800/20 bg-brand-800 text-white">
-          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-            <Link href="/" className="text-lg font-bold leading-tight">
-              Rede Solidária
-              <span className="block text-xs font-normal text-brand-100">Inteligente</span>
+
+        <header className="sticky top-0 z-40 border-b border-line/80 bg-white/85 backdrop-blur-md">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+            <Link href="/" className="flex items-center gap-2.5 rounded-xl" aria-label="Rede Solidária Inteligente — início">
+              <IconLogo size={34} className="text-brand-700" />
+              <span className="leading-tight">
+                <span className="block text-base font-extrabold tracking-tight text-ink">Rede Solidária</span>
+                <span className="block text-2xs font-bold uppercase tracking-[0.14em] text-brand-700">
+                  Inteligente
+                </span>
+              </span>
             </Link>
-            <nav aria-label="Navegação principal">
-              <ul className="flex flex-wrap items-center gap-1 sm:gap-2">
-                {NAV.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className="rounded-lg px-2.5 py-2 text-sm font-semibold text-white hover:bg-brand-700 sm:px-3 sm:text-base"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+            <div className="hidden md:block">
+              <HeaderNav />
+            </div>
+            <Link
+              href="/solicitar-ajuda"
+              className="inline-flex min-h-[40px] items-center rounded-xl bg-brand-700 px-4 py-2 text-sm font-bold text-white shadow-soft hover:bg-brand-800 md:hidden"
+            >
+              Pedir ajuda
+            </Link>
           </div>
         </header>
 
-        <main id="conteudo" className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
+        <main id="conteudo" className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 sm:px-6 sm:pt-10 md:pb-14">
           {children}
         </main>
 
-        <footer className="mt-10 border-t border-ink/10 bg-white">
-          <div className="mx-auto max-w-5xl space-y-3 px-4 py-8 text-sm text-ink/70">
-            <p className="font-semibold text-ink">
-              Rede Solidária Inteligente — Conectando pessoas. Organizando a solidariedade. Reconstruindo
-              comunidades.
+        <footer className="mt-6 border-t border-line bg-white">
+          <div className="mx-auto max-w-6xl space-y-4 px-4 py-8 text-sm text-muted sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="font-semibold text-ink">Rede Solidária Inteligente</p>
+              <p>Hackathon APONTI Academy · Desafio Antena na Lama · Caminho 3</p>
+            </div>
+            <p className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-alert">
+              <span aria-hidden="true" className="font-bold">
+                ⚠
+              </span>
+              <span>
+                Este sistema <strong>não substitui</strong> a Defesa Civil, serviços de emergência ou organizações
+                humanitárias. Em situação de risco, procure os canais oficiais.
+              </span>
             </p>
-            <p>
-              ⚠️ Este sistema <strong>não substitui</strong> a Defesa Civil, serviços de emergência ou
-              organizações humanitárias. Em situação de risco, procure os canais oficiais de emergência.
-            </p>
-            <p>
+            <p className="text-xs">
               Regiões reconhecidas com dados do{" "}
               <a
                 href="https://www.openstreetmap.org/copyright"
-                className="underline"
+                className="font-semibold underline underline-offset-2"
                 target="_blank"
                 rel="noreferrer"
               >
                 OpenStreetMap
               </a>{" "}
-              © colaboradores (licença ODbL). Registros marcados como demonstração são fictícios.
+              © colaboradores (ODbL). Registros marcados como demonstração são fictícios. A IA sugere; a decisão é
+              humana.
             </p>
-            <p>Projeto do Hackathon APONTI Academy: Devs Criam com IA — Desafio Antena na Lama, Caminho 3.</p>
           </div>
         </footer>
+
+        <MobileTabBar />
       </body>
     </html>
   );
