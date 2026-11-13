@@ -27,9 +27,15 @@ class PgDatabase implements Database {
   private async getPool(): Promise<import("pg").Pool> {
     if (!this.pool) {
       const { Pool } = await import("pg");
+      const connectionString = process.env.DATABASE_URL ?? "";
+      // Postgres gerenciado (Render, Supabase, Neon) exige TLS. Se a URL não
+      // trouxer `sslmode`, ligamos TLS para host remoto — e nunca para localhost.
+      const remoteHost = !/localhost|127\.0\.0\.1/.test(connectionString);
+      const sslInUrl = /[?&]sslmode=/.test(connectionString);
       this.pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        max: 5
+        connectionString,
+        max: 5,
+        ...(remoteHost && !sslInUrl ? { ssl: { rejectUnauthorized: false } } : {})
       });
     }
     return this.pool;

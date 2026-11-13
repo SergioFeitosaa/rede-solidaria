@@ -239,6 +239,21 @@ fluxo acima (1m30) → indicador e impacto (30s) → IA com auditoria + próximo
 > Sem `DATABASE_URL`, a Vercel não persiste dados entre execuções (filesystem efêmero) — em
 > produção use o Supabase. O PGlite serve para desenvolvimento e demonstração local.
 
+### Render (alternativa, com Postgres gerenciado)
+
+O repositório inclui um [`render.yaml`](render.yaml) (Blueprint) com Web Service + Postgres.
+
+| Campo no Render | Valor |
+|---|---|
+| Runtime | Node |
+| **Build Command** | `npm ci && npm run build` |
+| **Start Command** | `npm start` |
+| Health Check Path | `/api/health` |
+
+Variáveis obrigatórias: `DATABASE_URL` (o Blueprint injeta), `ADMIN_TOKEN` (16+ caracteres) e
+`NEXT_PUBLIC_APP_URL`. Passo a passo completo, incluindo o que costuma quebrar:
+[`docs/deploy-render.md`](docs/deploy-render.md).
+
 ## 10. Qualidade e CI
 
 - **GitHub Actions** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): `npm ci` →
