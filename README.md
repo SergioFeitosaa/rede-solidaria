@@ -79,10 +79,30 @@ Todos os registros do seed são marcados com **"(DEMONSTRAÇÃO — fictício)"*
 pessoas ou organizações reais**. No seed, a classificação é registrada como `MANUAL` — nunca
 apresentamos texto fixo como resultado de IA.
 
+### Telas
+
+| Rota | Para quem | O que faz |
+|---|---|---|
+| `/` | público | Explica o fluxo em 4 passos e mostra o estado real da rede |
+| `/solicitar-ajuda` | morador | Relato em 3 etapas (relato → conferir classificação → enviado) |
+| `/oferecer-ajuda` | doador/voluntário | Cadastro de doação ou voluntariado |
+| `/match` | os dois lados | Baralho de compatibilidades com arrastar, desfazer e modo lista |
+| `/meus-pedidos` | morador/doador | Seus registros neste navegador, com status atualizado |
+| `/pedidos/[id ou código]` | morador | Linha do tempo do pedido e auditoria da IA |
+| `/central` | organização | Validação, conexões, atendimentos e indicadores |
+
+**Memória sem login:** ao registrar um pedido/oferta, guardamos apenas id, código curto,
+categoria, item e região em `localStorage` — nada sensível. É o que faz `/meus-pedidos`
+existir sem senha e sem cadastro.
+
+**Swipe que lembra:** passar um cartão para a esquerda grava a dispensa em
+`match_dismissals`, então o cartão recusado não volta na próxima visita. "Desfazer"
+devolve o cartão ao baralho.
+
 ### Testes e build
 
 ```bash
-npm test          # 23 testes (4 arquivos), IA mockada
+npm test          # 28 testes (5 arquivos), IA mockada
 npm run build     # build de produção
 ```
 
@@ -243,22 +263,23 @@ Monólito modular **Next.js (App Router) + TypeScript**:
 
 ```
 ├── data/                  # Catálogo de bairros + proveniência (OSM)
-├── db/schema.sql          # Schema PostgreSQL (5 entidades)
+├── db/schema.sql          # Schema PostgreSQL (6 tabelas, inclui match_dismissals)
 ├── scripts/               # seed (demo fictícia) · fetch-osm-bairros (Overpass)
 ├── src/
 │   ├── app/               # páginas + API Route Handlers
-│   ├── components/        # UI acessível + SwipeDeck
+│   ├── components/        # design system (ui.tsx) + ícones + SwipeDeck
 │   ├── modules/
 │   │   ├── requests/      # Módulo A + auditoria de IA
 │   │   ├── offers/        # Módulo B
 │   │   ├── matching/      # Módulo C — motor de regras + serviços
 │   │   ├── mobilization/  # Módulo D — atendimentos + indicadores
 │   │   └── ai/            # interpretação estruturada (server-only)
-│   └── lib/               # db (Postgres/PGlite), auth, regiões (OSM)
-└── tests/                 # Vitest (23 testes)
+│   └── lib/               # db (Postgres/PGlite), auth, regiões (OSM), memória local
+└── tests/                 # Vitest (28 testes)
 ```
 
-Entidades: `users`, `help_requests`, `help_offers`, `matches`, `attendances` — com estados
+Entidades: `users`, `help_requests`, `help_offers`, `matches`, `attendances` e
+`match_dismissals` (decisões de swipe) — com estados
 `PENDING/VALIDATED/REJECTED/FULFILLED`, `AVAILABLE/RESERVED/UNAVAILABLE`,
 `SUGGESTED/INTERESTED/PENDING_CONFIRMATION/CONFIRMED/REJECTED` e
 `PENDING/IN_PROGRESS/COMPLETED/CANCELLED`.

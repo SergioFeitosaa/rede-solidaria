@@ -1,16 +1,18 @@
 import {
+  dismissSuggestion,
   listMatches,
   registerInterest,
   suggestionsForOffer,
   suggestionsForRequest
 } from "@/modules/matching/service";
 import { toResponse, DomainError } from "@/lib/errors";
+import { requireAdmin } from "@/lib/auth";
 
 /**
  * GET /api/matches
- * - ?requestId= → recomendações de ofertas para um pedido.
- * - ?offerId=   → recomendações de pedidos para uma oferta.
- * - ?status=    → matches já registrados (para a Central).
+ * - ?requestId= → recomendações de ofertas para um pedido (público).
+ * - ?offerId=   → recomendações de pedidos para uma oferta (público).
+ * - sem filtro  → matches registrados. Dado operacional: só para a Central.
  */
 export async function GET(req: Request) {
   try {
@@ -26,6 +28,11 @@ export async function GET(req: Request) {
       const suggestions = await suggestionsForOffer(offerId);
       return Response.json({ suggestions });
     }
+
+    // Lista completa de conexões só com token administrativo.
+    const denied = requireAdmin(req);
+    if (denied) return denied;
+
     const matches = await listMatches({ status: url.searchParams.get("status") ?? undefined });
     return Response.json({ matches });
   } catch (err) {
@@ -33,7 +40,12 @@ export async function GET(req: Request) {
   }
 }
 
-/** POST /api/matches — registrar interesse (Swipe à direita / botão). */
+/**
+ * POST /api/matches
+ * - { requestId, offerId, who } → registra interesse (swipe à direita).
+ * - { action: "PASS", requestId, offerId, who } → registra dispensa (swipe à esquerda),
+ *   para o cartão não voltar na próxima visita.
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -41,6 +53,12 @@ export async function POST(req: Request) {
     if (!who || !body.requestId || !body.offerId) {
       throw new DomainError("Informe requestId, offerId e who ('requester' ou 'provider').", 400);
     }
+
+    if (body.action === "PASS") {
+      await dismissSuggestion({ requestId: String(body.requestId), offerId: String(body.offerId), who });
+      return Response.json({ dismissed: true });
+    }
+
     const result = await registerInterest({
       requestId: String(body.requestId),
       offerId: String(body.offerId),

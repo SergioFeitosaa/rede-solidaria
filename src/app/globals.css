@@ -4,10 +4,12 @@
 
 :root {
   color-scheme: light;
+  --ring: #0d6a56;
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -23,22 +25,20 @@ html {
 }
 
 body {
-  @apply bg-sand-50 text-ink antialiased;
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    sans-serif;
+  @apply bg-canvas text-ink antialiased;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+::selection {
+  background: #a9ead3;
+  color: #04271f;
 }
 
 /* Foco visível e alto contraste para navegação por teclado. */
 :focus-visible {
-  outline: 3px solid #0d6a56;
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .skip-link {
@@ -46,12 +46,61 @@ body {
 }
 
 .skip-link:focus {
-  @apply not-sr-only fixed left-2 top-2 z-50 rounded-lg bg-brand-800 px-4 py-3 text-white shadow-lg;
+  @apply not-sr-only fixed left-2 top-2 z-50 rounded-xl bg-brand-900 px-4 py-3 text-white shadow-lift;
 }
 
 /* Estados de carregamento */
 .spinner {
-  @apply inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent;
+  @apply inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent;
+}
+
+.spinner-lg {
+  @apply h-6 w-6;
+}
+
+/* Rolagem horizontal sem barra (trilhas de passos, chips) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Baralho do Match: o cartão arrastado não deve "selecionar" texto no toque */
+.deck-card {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Textura sutil do hero, para o bloco verde não ficar chapado */
+.hero-grid {
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.16), transparent 45%),
+    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.12), transparent 40%);
+}
+
+/* Skeleton */
+.skeleton {
+  @apply rounded-xl bg-line/70;
+  background-image: linear-gradient(
+    90deg,
+    rgba(227, 232, 229, 0.4) 0%,
+    rgba(227, 232, 229, 0.9) 50%,
+    rgba(227, 232, 229, 0.4) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* Respeita a área segura do iPhone na barra inferior */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.card-animate {
+  animation: card-in 0.18s ease-out;
 }
 
 @keyframes card-in {
@@ -63,8 +112,4 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.card-animate {
-  animation: card-in 0.18s ease-out;
 }

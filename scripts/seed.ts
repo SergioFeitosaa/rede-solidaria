@@ -119,6 +119,35 @@ async function main() {
     { db }
   );
 
+  // Mais ofertas de água: no baralho do Match isso vira "vários doadores para
+  // o mesmo pedido" — o cenário real de uma enchente, com pontos espalhados.
+  await createOffer(
+    {
+      name: `Mercado Popular ${DEMO}`,
+      type: "DONATION",
+      category: "Água",
+      item: "galão de água",
+      quantity: 6,
+      region: "Boa Viagem",
+      availability: "imediata",
+      description: "Temos galões de água potável para doar a famílias afetadas."
+    },
+    { db }
+  );
+  await createOffer(
+    {
+      name: `Igreja do Bairro ${DEMO}`,
+      type: "DONATION",
+      category: "Água",
+      item: "água mineral",
+      quantity: 24,
+      region: "Casa Amarela",
+      availability: "sábado pela manhã",
+      description: "Arrecadamos garrafas de água mineral para distribuir no sábado."
+    },
+    { db }
+  );
+
   console.log("✓ Seed concluído. Todos os registros são fictícios, para demonstração.");
 }
 

@@ -39,6 +39,8 @@ export type AiClassificationAudit = {
 
 export interface RequestRecord {
   id: string;
+  /** Código curto legível (ex.: RS-4F7K) — é o que o morador anota. */
+  shortCode: string | null;
   userId: string | null;
   category: string;
   item: string | null;
@@ -54,6 +56,7 @@ export interface RequestRecord {
 
 interface RequestRow {
   id: string;
+  short_code: string | null;
   user_id: string | null;
   category: string;
   item: string | null;
@@ -70,6 +73,7 @@ interface RequestRow {
 function toRecord(row: RequestRow): RequestRecord {
   return {
     id: row.id,
+    shortCode: row.short_code ?? null,
     userId: row.user_id,
     category: row.category,
     item: row.item,
@@ -82,6 +86,17 @@ function toRecord(row: RequestRow): RequestRecord {
     reviewedAt: row.reviewed_at ? String(row.reviewed_at) : null,
     createdAt: String(row.created_at)
   };
+}
+
+/** Alfabeto sem caracteres ambíguos (0/O, 1/I/L). */
+const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+
+export function newShortCode(prefix = "RS"): string {
+  let code = "";
+  for (let i = 0; i < 4; i += 1) {
+    code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  }
+  return `${prefix}-${code}`;
 }
 
 export interface RequestDeps {
@@ -139,23 +154,46 @@ export async function createRequest(
           reason: aiResult.reason
         };
 
-  const [row] = await db.query<RequestRow>(
-    `INSERT INTO help_requests
-       (id, user_id, category, item, description, quantity, region, contact_method, status, ai_classification)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING', $9::jsonb)
-     RETURNING *`,
-    [
-      newId(),
-      user.id,
-      data.category,
-      data.item ?? null,
-      data.description,
-      data.quantity ?? null,
-      region,
-      data.contactMethod ?? null,
-      JSON.stringify(classification)
-    ]
-  );
+  const record = {
+    id: newId(),
+    userId: user.id,
+    category: data.category,
+    item: data.item ?? null,
+    description: data.description,
+    quantity: data.quantity ?? null,
+    region,
+    contactMethod: data.contactMethod ?? null,
+    classification: JSON.stringify(classification)
+  };
+
+  // O código curto é único: em caso de colisão, geramos outro (tentativas limitadas).
+  let row: RequestRow | undefined;
+  for (let attempt = 0; attempt < 6 && !row; attempt += 1) {
+    try {
+      [row] = await db.query<RequestRow>(
+        `INSERT INTO help_requests
+           (id, short_code, user_id, category, item, description, quantity, region, contact_method, status, ai_classification)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'PENDING', $10::jsonb)
+         RETURNING *`,
+        [
+          record.id,
+          newShortCode(),
+          record.userId,
+          record.category,
+          record.item,
+          record.description,
+          record.quantity,
+          record.region,
+          record.contactMethod,
+          record.classification
+        ]
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (!message.includes("short_code")) throw error;
+    }
+  }
+  if (!row) throw new DomainError("Não foi possível gerar o código do pedido. Tente novamente.", 500);
 
   return { request: toRecord(row), classification };
 }
@@ -263,7 +301,11 @@ export async function updateRequestStatus(
 
 export async function getRequest(id: string, deps: RequestDeps = {}): Promise<RequestRecord | null> {
   const db = deps.db ?? (await getDb());
-  const [row] = await db.query<RequestRow>("SELECT * FROM help_requests WHERE id = $1", [id]);
+  // Aceita tanto o UUID quanto o código curto (RS-4F7K), para o link ser amigável.
+  const [row] = await db.query<RequestRow>(
+    "SELECT * FROM help_requests WHERE id = $1 OR short_code = $2",
+    [id, id.trim().toUpperCase()]
+  );
   return row ? toRecord(row) : null;
 }
 
