@@ -73,6 +73,13 @@ Passo a passo detalhado (Windows/PowerShell, checklist de telas e problemas comu
 | `ADMIN_TOKEN` | Sim (Central) | Token administrativo (mín. 16 caracteres) — validado **no servidor**. |
 | `OSM_LOOKUP` | Não | `off` desativa a consulta ao Nominatim (padrão: ligada). |
 
+Receitas de configuração por provedor (OpenAI, Gemini, Groq, OpenRouter, DeepSeek e Ollama
+local) e como diagnosticar cada falha: [`docs/configurar-ia.md`](docs/configurar-ia.md).
+
+> Sem `OPENAI_API_KEY`, o app **continua funcionando**: o pedido é registrado com
+> classificação manual e a tela avisa, com honestidade, que a análise automática está
+> desligada. Isso não é erro — é o comportamento previsto.
+
 ### Dados de demonstração (fictícios)
 
 ```bash
