@@ -430,7 +430,3 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
     </ol>
   );
 }
-
-export function Divider({ className = "" }: { className?: string }) {
-  return <hr className={cn("border-line", className)} />;
-}

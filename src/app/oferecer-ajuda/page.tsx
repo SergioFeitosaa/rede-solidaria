@@ -4,18 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button, Card, Field, Input, Notice, Select, Textarea, cn } from "@/components/ui";
 import { IconArrowRight, IconCheck, IconHeart, IconShield, IconSparkle } from "@/components/icons";
+import { CATEGORIAS } from "@/lib/categorias";
 import { saveLocalOffer } from "@/lib/local-records";
-
-const CATEGORIAS = [
-  "Água",
-  "Alimentos",
-  "Colchões",
-  "Roupas",
-  "Higiene",
-  "Limpeza",
-  "Apoio voluntário",
-  "Outros"
-];
 
 type OfferType = "DONATION" | "VOLUNTEERING";
 

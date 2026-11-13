@@ -196,12 +196,6 @@ export const IconCopy = (p: IconProps) => (
   </Svg>
 );
 
-export const IconMenu = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M4 7h16M4 12h16M4 17h16" />
-  </Svg>
-);
-
 export const IconLogo = ({ size = 32, ...props }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true" {...props}>
     <rect width="32" height="32" rx="9" fill="currentColor" />

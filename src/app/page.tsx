@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { Card, Notice, SectionHeading, Stat } from "@/components/ui";
+import { Card, Notice, SectionHeading } from "@/components/ui";
 import {
   IconArrowRight,
   IconCards,
-  IconChart,
   IconCheck,
   IconHandHeart,
   IconHeart,
@@ -230,50 +229,6 @@ export default async function HomePage() {
         </ol>
       </section>
 
-      {/* ── Indicadores ──────────────────────────────────────────────────── */}
-      {hasData && stats && (
-        <section aria-labelledby="indicadores">
-          <SectionHeading
-            title="A rede em números"
-            description="Indicadores calculados dos registros persistidos — atualizados a cada acesso."
-            action={
-              <Link
-                href="/central"
-                className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-800 hover:underline"
-              >
-                Ver painel completo <IconArrowRight size={15} />
-              </Link>
-            }
-          />
-          <div id="indicadores" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat
-              label="Pedidos"
-              value={stats.totalPedidos}
-              hint={`${stats.pedidosPendentes} aguardando validação`}
-              icon={<IconHandHeart size={18} />}
-            />
-            <Stat
-              label="Ofertas"
-              value={stats.ofertasDisponiveis}
-              hint={`${stats.ofertasCadastradas} cadastradas`}
-              icon={<IconHeart size={18} />}
-            />
-            <Stat
-              label="Conexões"
-              value={stats.matchesComInteresse}
-              hint={`${stats.matchesConfirmados} confirmadas`}
-              icon={<IconCards size={18} />}
-            />
-            <Stat
-              label="Atendidos"
-              value={stats.indicadorPrincipal.atendimentosConcluidos}
-              hint={`${stats.indicadorPrincipal.percentual.toFixed(1)}% dos validados`}
-              icon={<IconChart size={18} />}
-            />
-          </div>
-        </section>
-      )}
-
       {/* ── Transparência + Central ──────────────────────────────────────── */}
       <section className="grid gap-4 lg:grid-cols-2">
         <Card eyebrow="Transparência" title="A IA sugere. A pessoa decide." className="h-full">
@@ -308,7 +263,7 @@ export default async function HomePage() {
             <span className="rounded-full border border-line px-2.5 py-1">Acompanhar</span>
             <span className="rounded-full border border-line px-2.5 py-1">Medir</span>
           </div>
-          <div className="mt-auto pt-5">
+          <div className="mt-auto flex flex-wrap items-center gap-3 pt-5">
             <Link
               href="/central"
               className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-bold text-white shadow-soft hover:bg-brand-800"
@@ -316,6 +271,14 @@ export default async function HomePage() {
               <IconUsers size={17} />
               Acessar a Central
             </Link>
+            {hasData && (
+              <Link
+                href="/central"
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-800 hover:underline"
+              >
+                Ver indicadores <IconArrowRight size={15} />
+              </Link>
+            )}
           </div>
         </Card>
       </section>

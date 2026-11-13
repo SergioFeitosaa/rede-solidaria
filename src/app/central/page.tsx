@@ -192,6 +192,11 @@ export default function CentralPage() {
     }
   }
 
+  const attendanceByMatch = useMemo(
+    () => new Map(attendances.map((attendance) => [attendance.matchId, attendance])),
+    [attendances]
+  );
+
   const filteredRequests = useMemo(() => {
     const term = query.trim().toLowerCase();
     return requests.filter((request) => {
@@ -559,142 +564,130 @@ export default function CentralPage() {
         )}
       </section>
 
-      {/* ── Matches ─────────────────────────────────────────────────────── */}
+      {/* ── Conexões (match + atendimento no mesmo cartão) ───────────────── */}
       <section aria-label="Conexões">
         <SectionHeading
           title="Conexões"
-          description="Interesses registrados pelo Match Solidário — confirme apenas depois de falar com as partes."
+          description="Interesse, confirmação e atendimento no mesmo cartão — sem cruzar listas."
         />
         {matches.length === 0 ? (
           <EmptyState
             icon={<IconCards size={22} />}
             title="Nenhuma conexão registrada"
-            description="As sugestões aparecem quando moradores e doadores sinalizam interesse no Match."
+            description="As conexões aparecem quando moradores e doadores sinalizam interesse no Match Solidário."
           />
         ) : (
           <ul className="space-y-3">
-            {matches.map((match) => (
-              <li key={match.id}>
-                <article className="rounded-2xl border border-line bg-surface p-4 shadow-soft">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <MatchStatusBadge status={match.status} />
-                    {match.requesterInterested && <Badge tone="brand">interesse do morador</Badge>}
-                    {match.providerInterested && <Badge tone="brand">interesse do doador</Badge>}
-                  </div>
-                  <p className="mt-2 text-sm text-ink/80">{match.compatibilityReason}</p>
-                  <p className="mt-1 font-mono text-2xs text-muted">
-                    pedido {match.requestId.slice(0, 8)} · oferta {match.offerId.slice(0, 8)}
-                  </p>
-                  {!["CONFIRMED", "REJECTED"].includes(match.status) && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          adminAction(
-                            `/api/matches/${match.id}`,
-                            "PATCH",
-                            { action: "CONFIRM" },
-                            "Conexão confirmada. Atendimento criado."
-                          )
-                        }
-                        loading={busy}
-                      >
-                        <IconCheck size={16} /> Confirmar conexão
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() =>
-                          adminAction(`/api/matches/${match.id}`, "PATCH", { action: "REJECT" }, "Conexão recusada.")
-                        }
-                        loading={busy}
-                      >
-                        Recusar
-                      </Button>
+            {matches.map((match) => {
+              const attendance = attendanceByMatch.get(match.id);
+              const open = !["CONFIRMED", "REJECTED"].includes(match.status);
+              return (
+                <li key={match.id}>
+                  <article className="rounded-2xl border border-line bg-surface p-4 shadow-soft">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <MatchStatusBadge status={match.status} />
+                      {match.requesterInterested && <Badge tone="brand">morador interessado</Badge>}
+                      {match.providerInterested && <Badge tone="brand">doador interessado</Badge>}
+                      {attendance && (
+                        <span className="sm:ml-auto">
+                          <AttendanceStatusBadge status={attendance.status} />
+                        </span>
+                      )}
                     </div>
-                  )}
-                </article>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
 
-      {/* ── Atendimentos ────────────────────────────────────────────────── */}
-      <section aria-label="Atendimentos">
-        <SectionHeading title="Atendimentos" description="Do início ao fim: cada entrega tem status e data." />
-        {attendances.length === 0 ? (
-          <EmptyState
-            icon={<IconCheck size={22} />}
-            title="Nenhum atendimento em andamento"
-            description="Ao confirmar uma conexão, o atendimento é criado aqui automaticamente."
-          />
-        ) : (
-          <ul className="space-y-3">
-            {attendances.map((attendance) => (
-              <li key={attendance.id}>
-                <article className="rounded-2xl border border-line bg-surface p-4 shadow-soft">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <AttendanceStatusBadge status={attendance.status} />
-                    <span className="text-sm text-muted">
-                      criado em {formatDateTime(attendance.createdAt)}
-                      {attendance.completedAt ? ` · concluído em ${formatDateTime(attendance.completedAt)}` : ""}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {attendance.status === "PENDING" && (
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          adminAction(
-                            `/api/attendances/${attendance.id}`,
-                            "PATCH",
-                            { status: "IN_PROGRESS" },
-                            "Atendimento em andamento."
-                          )
-                        }
-                        loading={busy}
-                      >
-                        Iniciar atendimento
-                      </Button>
-                    )}
-                    {attendance.status === "IN_PROGRESS" && (
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          adminAction(
-                            `/api/attendances/${attendance.id}`,
-                            "PATCH",
-                            { status: "COMPLETED" },
-                            "Atendimento concluído!"
-                          )
-                        }
-                        loading={busy}
-                      >
-                        <IconCheck size={16} /> Concluir atendimento
-                      </Button>
-                    )}
-                    {["PENDING", "IN_PROGRESS"].includes(attendance.status) && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() =>
-                          adminAction(
-                            `/api/attendances/${attendance.id}`,
-                            "PATCH",
-                            { status: "CANCELLED" },
-                            "Atendimento cancelado."
-                          )
-                        }
-                        loading={busy}
-                      >
-                        Cancelar
-                      </Button>
-                    )}
-                  </div>
-                </article>
-              </li>
-            ))}
+                    <p className="mt-2 text-sm text-ink/80">{match.compatibilityReason}</p>
+                    <p className="mt-1 text-xs text-muted">
+                      {attendance
+                        ? `Atendimento aberto em ${formatDateTime(attendance.createdAt)}${
+                            attendance.completedAt ? ` · concluído em ${formatDateTime(attendance.completedAt)}` : ""
+                          }`
+                        : `pedido ${match.requestId.slice(0, 8)} · oferta ${match.offerId.slice(0, 8)}`}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {open && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              adminAction(
+                                `/api/matches/${match.id}`,
+                                "PATCH",
+                                { action: "CONFIRM" },
+                                "Conexão confirmada. Atendimento criado."
+                              )
+                            }
+                            loading={busy}
+                          >
+                            <IconCheck size={16} /> Confirmar conexão
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() =>
+                              adminAction(`/api/matches/${match.id}`, "PATCH", { action: "REJECT" }, "Conexão recusada.")
+                            }
+                            loading={busy}
+                          >
+                            Recusar
+                          </Button>
+                        </>
+                      )}
+
+                      {attendance?.status === "PENDING" && (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            adminAction(
+                              `/api/attendances/${attendance.id}`,
+                              "PATCH",
+                              { status: "IN_PROGRESS" },
+                              "Atendimento em andamento."
+                            )
+                          }
+                          loading={busy}
+                        >
+                          Iniciar atendimento
+                        </Button>
+                      )}
+                      {attendance?.status === "IN_PROGRESS" && (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            adminAction(
+                              `/api/attendances/${attendance.id}`,
+                              "PATCH",
+                              { status: "COMPLETED" },
+                              "Atendimento concluído!"
+                            )
+                          }
+                          loading={busy}
+                        >
+                          <IconCheck size={16} /> Concluir atendimento
+                        </Button>
+                      )}
+                      {attendance && ["PENDING", "IN_PROGRESS"].includes(attendance.status) && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() =>
+                            adminAction(
+                              `/api/attendances/${attendance.id}`,
+                              "PATCH",
+                              { status: "CANCELLED" },
+                              "Atendimento cancelado."
+                            )
+                          }
+                          loading={busy}
+                        >
+                          Cancelar
+                        </Button>
+                      )}
+                    </div>
+                  </article>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
