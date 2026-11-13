@@ -1,0 +1,483 @@
+{
+  "fonte": "Catálogo factual de bairros do município do Recife (PE) — lista oficial de bairros com microrregiões de planejamento; normalização primária em tempo de execução via OpenStreetMap (Nominatim). Renovação via OSM: scripts/fetch-osm-bairros.mjs",
+  "licenca_dados": "Dados factuais (nomes de bairros oficiais e microrregiões de planejamento do Recife). Geografia © colaboradores do OpenStreetMap (ODbL) quando gerada via Overpass.",
+  "gerado_em": "2026-11-13",
+  "total": 95,
+  "bairros": [
+    {
+      "nome": "Boa Vista",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Cabanga",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Coelhos",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Ilha Do Leite",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Ilha Joana Bezerra",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Paissandu",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Recife",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Santo Amaro",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Santo Antonio",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Sao Jose",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Soledade",
+      "microrregiao": "1",
+      "regiao_raiz": 1
+    },
+    {
+      "nome": "Agua Fria",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Alto Santa Teresinha",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Arruda",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Beberibe",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Bomba Do Hemeterio",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Cajueiro",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Campina Do Barreto",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Campo Grande",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Dois Unidos",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Encruzilhada",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Fundao",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Hipodromo",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Linha Do Tiro",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Peixinhos",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Ponto De Parada",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Porto Da Madeira",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Rosarinho",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Torreao",
+      "microrregiao": "2",
+      "regiao_raiz": 2
+    },
+    {
+      "nome": "Aflitos",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Alto Do Mandu",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Apipucos",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Casa Amarela",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Casa Forte",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Derby",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Dois Irmaos",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Espinheiro",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Gracas",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Jaqueira",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Monteiro",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Parnamirim",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Poco",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Santana",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Sitio Dos Pintos",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Tamarineira",
+      "microrregiao": "3.1",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Alto Jose Bonifacio",
+      "microrregiao": "3.2",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Alto Jose Do Pinho",
+      "microrregiao": "3.2",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Mangabeira",
+      "microrregiao": "3.2",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Morro Da Conceicao",
+      "microrregiao": "3.2",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Vasco Da Gama",
+      "microrregiao": "3.2",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Brejo Da Guabiraba",
+      "microrregiao": "3.3",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Brejo De Beberibe",
+      "microrregiao": "3.3",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Corrego Do Jenipapo",
+      "microrregiao": "3.3",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Guabiraba",
+      "microrregiao": "3.3",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Macaxeira",
+      "microrregiao": "3.3",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Nova Descoberta",
+      "microrregiao": "3.3",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Passarinho",
+      "microrregiao": "3.3",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Pau-Ferro",
+      "microrregiao": "3.3",
+      "regiao_raiz": 3
+    },
+    {
+      "nome": "Caxanga",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Cidade Universitaria",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Cordeiro",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Engenho Do Meio",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Ilha Do Retiro",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Iputinga",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Madalena",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Prado",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Torre",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Torroes",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Varzea",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Zumbi",
+      "microrregiao": "4",
+      "regiao_raiz": 4
+    },
+    {
+      "nome": "Afogados",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Areias",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Barro",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Bongi",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Cacote",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Coqueiral",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Curado",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Estancia",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Jardim Sao Paulo",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Jiquia",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Mangueira",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Mustardinha",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "San Martin",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Sancho",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Tejipio",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Toto",
+      "microrregiao": "5",
+      "regiao_raiz": 5
+    },
+    {
+      "nome": "Boa Viagem",
+      "microrregiao": "6",
+      "regiao_raiz": 6
+    },
+    {
+      "nome": "Brasilia Teimosa",
+      "microrregiao": "6",
+      "regiao_raiz": 6
+    },
+    {
+      "nome": "Cohab",
+      "microrregiao": "6",
+      "regiao_raiz": 6
+    },
+    {
+      "nome": "Ibura",
+      "microrregiao": "6",
+      "regiao_raiz": 6
+    },
+    {
+      "nome": "Imbiribeira",
+      "microrregiao": "6",
+      "regiao_raiz": 6
+    },
+    {
+      "nome": "Ipsep",
+      "microrregiao": "6",
+      "regiao_raiz": 6
+    },
+    {
+      "nome": "Jordao",
+      "microrregiao": "6",
+      "regiao_raiz": 6
+    },
+    {
+      "nome": "Pina",
+      "microrregiao": "6",
+      "regiao_raiz": 6
+    },
+    {
+      "nome": "Setubal",
+      "microrregiao": "6",
+      "regiao_raiz": 6
+    }
+  ]
+}
